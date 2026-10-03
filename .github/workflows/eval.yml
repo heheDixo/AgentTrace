@@ -1,0 +1,40 @@
+name: eval
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest -q
+
+      # --- Regression gate --------------------------------------------------------
+      # Runs the golden task set and diffs against the committed baseline. Fails the
+      # PR (non-zero exit) if any evaluator's score regressed beyond the threshold.
+      #
+      # First-time setup: generate and commit a baseline on main, e.g.
+      #   agenttrace ci --baseline baselines/main.json --update-baseline
+      # Until baselines/main.json is committed, this step establishes it and passes;
+      # once committed, it actively gates regressions.
+      - name: Regression gate
+        run: agenttrace ci --baseline baselines/main.json
+      # ---------------------------------------------------------------------------

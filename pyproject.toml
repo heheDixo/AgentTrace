@@ -17,6 +17,7 @@ dependencies = [
     "langgraph>=0.2",
     "langchain-core>=0.3",
     "openai-agents>=0.2",
+    "agentdojo>=0.1",
 ]
 
 [project.optional-dependencies]

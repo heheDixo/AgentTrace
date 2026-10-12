@@ -215,6 +215,43 @@ def calibrate(
 
 
 @app.command()
+def bench(
+    suite: str = typer.Option(..., "--suite", "-s", help="AgentDojo suite, e.g. banking."),
+    adapter: str = typer.Option("langgraph", "--adapter", "-a", help="Registered adapter name."),
+    k: int = typer.Option(1, "--k", help="Repeat each case k times for pass^k reliability."),
+    limit_user_tasks: int | None = typer.Option(
+        None, "--limit-user-tasks", help="Cap the number of user tasks (for a quick run)."
+    ),
+    limit_injection_tasks: int | None = typer.Option(
+        None, "--limit-injection-tasks", help="Cap injection fixtures per user task."
+    ),
+    out: str | None = typer.Option(
+        None, "--out", "-o", help="Write the BenchmarkReport JSON here."
+    ),
+) -> None:
+    """Run an AgentDojo suite (benign + injected) with the deterministic oracle agent."""
+    # Lazy import: only pulls in agentdojo when the bench command is actually used.
+    from agenttrace.benchmarks.runner import OracleAgent, render_report, run_suite
+
+    adapter_instance = adapters.get(adapter)()
+    report = run_suite(
+        suite,
+        adapter_instance,
+        OracleAgent(),
+        k=k,
+        limit_user_tasks=limit_user_tasks,
+        limit_injection_tasks=limit_injection_tasks,
+    )
+    render_report(report, console=console)
+
+    if out:
+        out_path = Path(out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(report.model_dump(), indent=2), encoding="utf-8")
+        console.print(f"[dim]Benchmark report written to[/dim] {out_path}")
+
+
+@app.command()
 def ci(
     adapter: str = typer.Option("langgraph", "--adapter", "-a", help="Registered adapter name."),
     baseline: str = typer.Option(

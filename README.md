@@ -181,6 +181,41 @@ threat taxonomy (indicative):
 Upstream vector corresponds to **OWASP LLM Top-10 `LLM01` (Prompt Injection)**. AgentDojo injection
 tasks are used strictly as **fixtures to measure against**, never as payloads to craft or extend.
 
+## Team dev setup (Claude Code plugin)
+
+Our Claude Code house setup is packaged as a local plugin,
+[`plugins/agenttrace-devkit`](plugins/agenttrace-devkit), so a teammate gets it in one install:
+
+- **`/new-adapter <framework>`** — scaffolds a new adapter stub + test the house way.
+- **ruff-format-on-edit** — a PostToolUse hook runs `ruff format` on any `.py` file Claude edits.
+- **schema.py protection** — a PreToolUse hook makes edits to the load-bearing `schema.py` require
+  confirmation.
+- **`adapter-authoring` skill** — teaches Claude the adapter pattern, so new adapters follow it.
+
+**Load it for one session** (no install, nothing persisted):
+
+```bash
+claude --plugin-dir plugins/agenttrace-devkit
+```
+
+**Make it persistent** across sessions, no marketplace required — point
+`CLAUDE_CODE_PLUGIN_DIRS` at the plugin from your shell profile:
+
+```bash
+echo 'export CLAUDE_CODE_PLUGIN_DIRS="$HOME/path/to/AgentTrace/plugins/agenttrace-devkit"' >> ~/.zshrc
+```
+
+*(Future option — once this repo is pushed to GitHub, add a `.claude-plugin/marketplace.json` and
+teammates can `/plugin marketplace add owner/repo` then `/plugin install agenttrace-devkit`. Not
+set up yet, on purpose.)*
+
+Validate the plugin manifest anytime with `claude plugin validate plugins/agenttrace-devkit`.
+
+> Note: when you work **inside this repo**, the committed project config in
+> [`.claude/`](.claude) already provides the same command + hooks with zero install — the plugin is
+> for using the house setup in *other* repos or managing it explicitly. Enabling both at once just
+> runs the (idempotent) hooks twice.
+
 ## Repo layout
 
 ```
@@ -193,6 +228,8 @@ src/agenttrace/
   report/                # rich tables, JSON persistence, regression diff
   cli.py                 # run · report · bench · ci · calibrate
 tests/                   # 67 tests
+plugins/agenttrace-devkit/   # Claude Code plugin: /new-adapter, hooks, adapter-authoring skill
+.claude/                 # same setup as project config (active in-repo, zero install)
 .github/workflows/eval.yml   # ruff + pytest + regression gate
 ```
 

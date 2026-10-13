@@ -1,0 +1,7 @@
+{
+  "name": "agenttrace-devkit",
+  "version": "0.1.0",
+  "description": "AgentTrace house dev setup: the /new-adapter scaffolder, ruff-format-on-edit and schema.py-protection hooks, and the adapter-authoring skill.",
+  "author": { "name": "AgentTrace contributors" },
+  "keywords": ["agenttrace", "adapters", "scaffolding", "ruff", "hooks"]
+}
